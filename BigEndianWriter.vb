@@ -49,64 +49,6 @@ Namespace AmaknaCore.Common.IO
                 Return datas
             End Get
         End Property
-
-        Private Function ComputeStaticHeader(ByVal PacketId As Integer, ByVal MessageLenghtType As Integer) As Short
-            Return (PacketId << 2) Or MessageLenghtType
-        End Function
-
-        Private Function ComputeTypeLen(ByVal MessageLenght As Integer) As Short
-            Select Case MessageLenght
-                Case Is > UShort.MaxValue
-                    Return 3
-                Case Is > Byte.MaxValue
-                    Return 2
-                Case Is > 0
-                    Return 1
-                Case Else
-                    Return 0
-            End Select
-        End Function
-
-        Public Sub Send(ByVal PacketID As Integer, Message As BigEndianWriter)
-            Dim test As New BigEndianWriter
-
-            Dim _loc_5 As UInteger = 0
-            Dim _loc_6 As UInteger = 0
-
-            Dim MessageLenghtType As UInteger = ComputeTypeLen(Message.Data().Length)
-            Dim Header As Short = ComputeStaticHeader(PacketID, MessageLenghtType)
-
-            test.WriteShort(Header)
-
-            Select Case MessageLenghtType
-
-                Case 0
-                    Exit Select
-                Case 1
-                    test.WriteByte(Message.Data().Length)
-                    Exit Select
-                Case 2
-                    test.WriteUShort(Message.Data().Length)
-                    Exit Select
-                Case 3
-                    _loc_5 = (Message.Data().Length >> 16) And 255
-                    _loc_6 = Message.Data().Length and 65535
-                    test.WriteByte(_loc_5)
-                    test.WriteShort(_loc_6)
-                    Exit Select
-                Case Else
-                    Exit Select
-            End Select
-
-            test.WriteBytes(Message.Data())
-            WriteBytes(test.Data())
-
-            Log.Write("[INFO] Message Lenght = " & test.Data().Length)
-
-            test.Dispose()
-            Message.Dispose()
-        End Sub
-
 #End Region
 
 #Region "Initialisation"
@@ -371,16 +313,11 @@ Namespace AmaknaCore.Common.IO
 
 #Region "Dispose"
 
-        Public Sub Dispose()
+        Public Sub Dispose() Implements IDisposable.Dispose
             m_writer.Dispose()
             m_writer = Nothing
         End Sub
 
 #End Region
-
-        Public Sub Dispose1() Implements IDisposable.Dispose
-            m_writer.Dispose()
-            m_writer = Nothing
-        End Sub
     End Class
 End Namespace
